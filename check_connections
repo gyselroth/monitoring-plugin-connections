@@ -1,0 +1,94 @@
+#!/bin/bash
+
+#
+# Open tcp connection nagios check script
+#
+# Raffael Sahli <sahli@gyselroth.com>
+# gyselroth GmbH, 2014
+#
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+OPTIONS:
+   -h      Show this message
+   -p      Port
+   -w      Max established connections (warning)
+   -c      Max established connections (critical)
+   -d      Performance Data
+EOF
+}
+
+code=0
+port=
+warning=
+critical=
+perf=0
+while getopts "p:w:c:dh" OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         p)
+             port=$OPTARG
+             ;;
+         w)
+             warning=$OPTARG
+             ;;
+         c)
+             critical=$OPTARG
+             ;;
+         d)
+             perf=1
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+if [ -z $port ]
+then
+     usage
+     exit 1
+fi
+
+
+established=$(netstat -n | grep $port | grep ESTABLISHED | wc -l)
+
+if [[ "$warning" != "" && "$critical" != "" ]];
+then 
+    if [ "$established" -ge "$critical" ]; 
+    then
+        code=2
+        msg="established tcp connections ($established) is critcal ($critical)"
+    elif [[ "$established" -ge $warning && "$established" -le "$critical" ]]; 
+    then
+        code=1
+        msg="established tcp connections ($established) is warning ($warning)"
+    else
+        code=0
+        msg="established tcp connections ($established) is ok"
+    fi
+else 
+    code=0
+    msg="established tcp connections ($established) is ok"
+fi
+
+
+if [ "$perf" -eq 1 ];
+then  
+    total=$(netstat -n | grep $port | wc -l)
+    time_wait=$(netstat -n | grep $port | grep TIME_WAIT | wc -l)
+    fin_wait=$(netstat -n | grep $port | grep FIN_WAIT | wc -l)
+    close_wait=$(netstat -n | grep $port | grep CLOSE_WAIT | wc -l)
+    msg="$msg|'max'=$critical;;;;0 'total'=$total;;;;0 'established'=$established;;;;0 'time_wait'=$time_wait;;;;0 'close_wait'=$close_wait;;;;0 'fin_wait'=$fin_wait;;;;0"
+fi
+
+echo $msg
+exit $code
