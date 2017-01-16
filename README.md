@@ -5,6 +5,7 @@
 Monitor the number of open sockets on your server.
 
 For example:
+
     # ./check_connections  -p 443 -w 400 -c 500 -d    
     established tcp connections (5) is ok|'max'=500;;;;0 'total'=169;;;;0 'established'=5;;;;0 'time_wait'=164;;;;0 'close_wait'=0;;;;0 'fin_wait'=0;;;;
 
