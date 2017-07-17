@@ -59,7 +59,7 @@ then
 fi
 
 
-established=$(netstat -n | grep $port | grep ESTABLISHED | wc -l)
+established=$(netstat -n | grep -E ":$port\s" | grep ESTABLISHED | wc -l)
 
 if [[ "$warning" != "" && "$critical" != "" ]];
 then 
